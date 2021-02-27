@@ -1,0 +1,39 @@
+plugins {
+    id 'java'
+    id 'org.jetbrains.kotlin.jvm' version '1.4.21'
+    // add ktlintcheck task
+    id 'org.jlleitschuh.gradle.ktlint' version '8.2.0'
+    // antlr plugin
+    id 'antlr'
+}
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+sourceSets {
+    main {
+        antlr {
+            srcDirs = ["src/third_parties"]
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+    // set antlr version to use
+    antlr "org.antlr:antlr4:$antlrVersion"
+}
+
+generateGrammarSource {
+    arguments += ['-package', 'com.smeup.test.antlrtutorial.parser']
+}
+
+test {
+    useJUnitPlatform()
+}
