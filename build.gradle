@@ -5,11 +5,18 @@ plugins {
     id 'org.jlleitschuh.gradle.ktlint' version '8.2.0'
     // antlr plugin
     id 'antlr'
+    id 'idea'
 }
 
 group 'org.example'
 version '1.0-SNAPSHOT'
 
+// antlr customization
+// where antlr will create generated files
+def generatedMain = "generated-src/antlr/main"
+def generatedMainFile = file(generatedMain)
+
+// this is necessary to allow antlr plugin finding the grammar file
 sourceSets {
     main {
         antlr {
@@ -17,6 +24,37 @@ sourceSets {
         }
     }
 }
+
+compileKotlin {
+    // antlr - kotlin compilation must search for source even in generatedMainFile
+    source generatedMainFile, sourceSets.main.java, sourceSets.main.kotlin
+    dependsOn generateGrammarSource
+}
+
+// i tell intellij to add to sourcedirs even generatedMainFile
+// this is needed to make working properly the autocompletion
+idea {
+    module {
+        println 'Adding ' + generatedMainFile + ' to source dirs'
+        mkdir generatedMain
+        sourceDirs += generatedMainFile
+        println sourceDirs
+    }
+}
+
+// on clean i have to delete generated files
+clean {
+    delete file(generatedMain)
+    mkdir generatedMain
+}
+
+generateGrammarSource {
+    arguments += ['-package', 'com.smeup.test.antlrtutorial.parser']
+    outputDirectory = file(generatedMain + "/com/smeup/test/antlrtutorial/parser")
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////
 
 repositories {
     mavenCentral()
@@ -28,10 +66,6 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
     // set antlr version to use
     antlr "org.antlr:antlr4:$antlrVersion"
-}
-
-generateGrammarSource {
-    arguments += ['-package', 'com.smeup.test.antlrtutorial.parser']
 }
 
 test {
